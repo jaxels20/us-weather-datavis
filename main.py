@@ -19,6 +19,7 @@ colors = ['aqua', 'darksalmon', 'grey', 'red', 'yellow']
 
 df_weather, df_placement = func.retrieve_data(city_list)
 
+
 app = dash.Dash(__name__, suppress_callback_exceptions=True,
                 meta_tags=[{'name': 'viewport',
                             'content': 'width=device-width, initial-scale=1.0'}],
@@ -26,39 +27,52 @@ app = dash.Dash(__name__, suppress_callback_exceptions=True,
                 )
 
 app.layout = html.Div(
-    [html.H1('Visualisation of the weather in the US in the year 2015'), dbc.Row(
-    dbc.Col(
-    dcc.Graph(id = 'map', figure = {'layout': {
-
-    'height': 600,
-                                'margin': {'l': 0, 'b': 0, 't': 0, 'r': 0}
-                            }})
-    , width=6)
-    ),
+    [html.H1('Visualisation of the weather in the US in the year 2015'),
     dbc.Row([
-        dbc.Col(
-            dcc.Graph(id='subgraph1')
-            , width=6),
-        dbc.Col(
-            dcc.Graph(id='subgraph2')
-            , width=6)
-    ])
-])
+    dbc.Col([
+    dcc.Graph(id = 'map', figure = {'layout': {'height': 600, 'margin': {'l': 0, 'b': 0, 't': 0, 'r': 0}}}),
+    dcc.Graph(id='subgraph2')], width=6),
+    dbc.Col(dcc.Graph(id='subgraph1'), width=6)])])
 
 @app.callback(
     Output(component_id='map', component_property='figure'),
     Input(component_id='map', component_property='clickData')
 )
 def generate_map(clickdata):
-    fig = px.scatter_mapbox(data_frame= df_placement,
-                            lon='lon',
-                            lat='lat',
-                            zoom=3,
-                            center={'lat': 40.686288, 'lon': -98.24587245247825},
-                            custom_data=['city']
-                            )
-    fig.update_layout(mapbox_style='open-street-map')
-    return fig
+    # fig = px.scatter_mapbox(data_frame= df_placement,
+    #                         lon='lon',
+    #                         lat='lat',
+    #                         zoom=3,
+    #                         mode='text',
+    #                         center={'lat': 40.686288, 'lon': -98.24587245247825},
+    #                         custom_data=['city'],
+    #                         hover_data= [],
+    #                         size='size',
+    #                         text='city')
+    if clickdata is not None:
+        clicked_city = clickdata['points'][0]['customdata']
+        for i in range(len(df_placement)):
+            if df_placement.at[i, 'city'] == clicked_city:
+                if df_placement.at[i, 'color'] == 'grey':
+                    df_placement.at[i, 'color'] = 'blue'
+                else:
+                    df_placement.at[i, 'color'] = 'grey'
+    fig1 = go.Figure(go.Scattermapbox(
+        lat=df_placement['lat'],
+        lon=df_placement['lon'],
+        mode='markers+text',
+        customdata= df_placement['city'],
+        marker=go.scattermapbox.Marker(
+            size=14,
+            color=df_placement['color']
+        ),
+        text=df_placement['city'],
+        textposition='top right',
+        hoverinfo='text'
+    ))
+
+    fig1.update_layout(mapbox_style='open-street-map', margin={"r":0,"t":0,"l":0,"b":0})
+    return fig1
 
 
 
@@ -70,7 +84,7 @@ def generate_map(clickdata):
 def generate_subgraph(clickdata):
     bool = True
     if clickdata is not None:
-        clicked_city = clickdata['points'][0]['customdata'][0]
+        clicked_city = clickdata['points'][0]['customdata']
         if clicked_city in selected_cities1:
             selected_cities1.remove(clicked_city)
         else:
@@ -141,7 +155,7 @@ def generate_subgraph(clickdata):
 )
 def generate_subgraph(clickdata):
     if clickdata is not None:
-        clicked_city = clickdata['points'][0]['customdata'][0]
+        clicked_city = clickdata['points'][0]['customdata']
         if clicked_city in selected_cities2:
             selected_cities2.remove(clicked_city)
         else:

@@ -20,6 +20,8 @@ def retrieve_data(city_list):
                  ['PHX', 33.448376, -112.074036],
                  ['SEA', 47.608013, -122.335167]]
     df_placement = pd.DataFrame(placement, columns= ['city', 'lat', 'lon'])
+    df_placement['color'] = 'grey'
+
     return df_weather, df_placement
 
 
