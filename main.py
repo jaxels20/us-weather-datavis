@@ -14,6 +14,7 @@ from plotly.subplots import make_subplots
 city_list = ['NYC', 'HOU', 'CLT', 'CQT', 'IND', 'JAX', 'MDW', 'PHL', 'PHX', 'SEA']
 selected_cities1 = []
 selected_cities2 = []
+selected_cities3 = []
 colors = ['aqua', 'darksalmon', 'grey', 'red', 'yellow']
 
 
@@ -39,40 +40,32 @@ app.layout = html.Div(
     Input(component_id='map', component_property='clickData')
 )
 def generate_map(clickdata):
-    # fig = px.scatter_mapbox(data_frame= df_placement,
-    #                         lon='lon',
-    #                         lat='lat',
-    #                         zoom=3,
-    #                         mode='text',
-    #                         center={'lat': 40.686288, 'lon': -98.24587245247825},
-    #                         custom_data=['city'],
-    #                         hover_data= [],
-    #                         size='size',
-    #                         text='city')
     if clickdata is not None:
-        clicked_city = clickdata['points'][0]['customdata']
-        for i in range(len(df_placement)):
-            if df_placement.at[i, 'city'] == clicked_city:
-                if df_placement.at[i, 'color'] == 'grey':
-                    df_placement.at[i, 'color'] = 'blue'
-                else:
-                    df_placement.at[i, 'color'] = 'grey'
-    fig1 = go.Figure(go.Scattermapbox(
-        lat=df_placement['lat'],
-        lon=df_placement['lon'],
-        mode='markers+text',
-        customdata= df_placement['city'],
-        marker=go.scattermapbox.Marker(
-            size=14,
-            color=df_placement['color']
-        ),
-        text=df_placement['city'],
-        textposition='top right',
-        hoverinfo='text'
-    ))
+        clicked_city = clickdata['points'][0]['customdata'][0]
+        if clicked_city in selected_cities1:
+            selected_cities3.remove(clicked_city)
+        else:
+            selected_cities3.append(clicked_city)
 
-    fig1.update_layout(mapbox_style='open-street-map', margin={"r":0,"t":0,"l":0,"b":0})
-    return fig1
+        for i in range(len(df_placement)):
+            if df_placement.at[i, 'city'] not in selected_cities3:
+                df_placement.at[i, 'opacity'] = 0.4
+            else:
+                df_placement.at[i, 'opacity'] = float(1)
+
+    fig = px.scatter_mapbox(data_frame=df_placement,
+                            lon='lon',
+                            lat='lat',
+                            zoom=3,
+                            center={'lat': 40.686288, 'lon': -98.24587245247825},
+                            custom_data=['city'],
+                            hover_data=[],
+                            color='extreme',
+                            opacity=df_placement['opacity'],
+                            size='size',
+                            text='city')
+    fig.update_layout(mapbox_style='open-street-map', margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    return fig
 
 
 
@@ -84,7 +77,7 @@ def generate_map(clickdata):
 def generate_subgraph(clickdata):
     bool = True
     if clickdata is not None:
-        clicked_city = clickdata['points'][0]['customdata']
+        clicked_city = clickdata['points'][0]['customdata'][0]
         if clicked_city in selected_cities1:
             selected_cities1.remove(clicked_city)
         else:
@@ -155,7 +148,7 @@ def generate_subgraph(clickdata):
 )
 def generate_subgraph(clickdata):
     if clickdata is not None:
-        clicked_city = clickdata['points'][0]['customdata']
+        clicked_city = clickdata['points'][0]['customdata'][0]
         if clicked_city in selected_cities2:
             selected_cities2.remove(clicked_city)
         else:

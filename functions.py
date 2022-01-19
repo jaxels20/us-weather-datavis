@@ -20,7 +20,19 @@ def retrieve_data(city_list):
                  ['PHX', 33.448376, -112.074036],
                  ['SEA', 47.608013, -122.335167]]
     df_placement = pd.DataFrame(placement, columns= ['city', 'lat', 'lon'])
-    df_placement['color'] = 'grey'
+    df_placement['extreme'] = float(0)
+    df_placement['opacity'] = float(1)
+    df_placement['size'] = 25
+
+    df_weather['actuel_min_to_record_min'] = abs(df_weather['actual_min_temp'] - df_weather['record_min_temp'])
+    df_weather['actuel_max_to_record_max'] = abs(df_weather['actual_max_temp'] - df_weather['record_max_temp'])
+
+    df_weather['most_extreme'] = df_weather[['actuel_min_to_record_min', 'actuel_max_to_record_max']].min(axis=1)
+    for i, row_city in enumerate(df_placement['city']):
+        avg = df_weather[df_weather['city'] == row_city]['most_extreme'].mean()
+        df_placement.at[i, 'extreme'] = avg
+
+
 
     return df_weather, df_placement
 
